@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Home</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.7.16/dist/vue.js"></script>
+    <script module src="./custom-element.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/document-register-element/1.4.1/document-register-element.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/1.3.5/tailwind.min.css"
+    />
+    <script>
+      const fakeData = [
+        {
+          id: 0,
+          firstName: 'Rob',
+          lastName: 'Dot',
+          phone: '801-494-9068',
+          email: 'edades@gmail.com',
+        },
+        {
+          id: 1,
+          firstName: 'Kate',
+          lastName: 'Schwarz',
+          phone: '801-494-1111',
+          email: 'kschwarz@gmail.com',
+        },
+        {
+          id: 2,
+          firstName: 'Rebecca',
+          lastName: 'Smith',
+          phone: '385-494-1111',
+          email: 'rsmith@gmail.com',
+        },
+        {
+          id: 3,
+          firstName: 'Tom',
+          lastName: 'Dot',
+          phone: '385-494-5555',
+          email: 'tomdot@gmail.com',
+        },
+      ];
+      function mounted() {
+        this.tableData = fakeData;
+
+        this.originalData = fakeData;
+      }
+
+      Vue.customElement('test-widget', {
+        data() {
+          return {
+            tableData: [],
+            sort: 'asc',
+            term: '',
+            originalData: [],
+          };
+        },
+        mounted,
+        methods: {
+          removeUser(userId) {
+            this.tableData = this.tableData.filter(
+              (user) => user.id !== userId
+            );
+            this.originalData = this.tableData;
+          },
+          sortByColumn(columnName) {
+            if (this.sort === 'asc') {
+              this.tableData = this.tableData.sort((a, b) =>
+                a[columnName].localeCompare(b[columnName])
+              );
+              this.sort = 'desc';
+            } else {
+              this.tableData = this.tableData.sort((a, b) =>
+                b[columnName].localeCompare(a[columnName])
+              );
+              this.sort = 'asc';
+            }
+          },
+          filterByTerm() {
+            if (this.term.trim().length === 0) {
+              this.tableData = this.originalData;
+              return;
+            }
+            this.tableData = this.originalData.filter((user) => {
+              const firstNameIncludesTerm = user.firstName
+                .toLowerCase()
+                .includes(this.term.toLowerCase());
+
+              const lastNameIncludesTerm = user.lastName
+                .toLowerCase()
+                .includes(this.term.toLowerCase());
+
+              const phoneIncludesTerm = user.phone
+                .toLowerCase()
+                .includes(this.term.toLowerCase());
+
+              const emailIncludesTerm = user.email
+                .toLowerCase()
+                .includes(this.term.toLowerCase());
+
+              const someIncludesTerm =
+                firstNameIncludesTerm ||
+                lastNameIncludesTerm ||
+                phoneIncludesTerm ||
+                emailIncludesTerm;
+
+              return someIncludesTerm;
+            });
+          },
+        },
+        template: `
+        <div class="bg-gray-900 text-yellow-400 p-4 w-full h-screen">
+
+          <section class="flex flex-row justify-center p-6 items-center">
+            <label class="mr-4 font-semibold">Enter a term: </label>
+            <input class="p-1 text-black" type="text" v-model="term">
+            <button class="ml-2 px-4 py-1 border-2 border-yellow-300 hover:border-yellow-500 hover:text-yellow-500 text-yellow-300" v-on:click="filterByTerm()"> Search 🔎 </button>
+          </section>
+
+          <section class="grid grid-cols-5 gap-1 text-yellow-300">
+            <!-- table headers -->
+
+            <div class="flex justify-center items-center border-b-4 border-yellow-300 px-2 py-3">
+              <button v-on:click="sortByColumn('firstName')" class="hover:text-yellow-500 font-semibold">
+                First Name ↕️
+              </button>
+            </div>
+
+            <div class="flex justify-center items-center border-b-4 border-yellow-300 px-2 py-3">
+              <button v-on:click="sortByColumn('lastName')" class="hover:text-yellow-500 font-semibold">
+                Last Name ↕️
+              </button>
+            </div>
+
+            <div class="flex justify-center items-center border-b-4 border-yellow-300 px-2 py-3">
+              <button v-on:click="sortByColumn('phone')" class="hover:text-yellow-500 font-semibold">
+                Phone ↕️
+              </button>
+            </div>
+
+            <div class="flex justify-center items-center border-b-4 border-yellow-300 px-2 py-3">
+              <button v-on:click="sortByColumn('email')" class="hover:text-yellow-500 font-semibold">
+                Email ↕️
+              </button>
+            </div>
+
+            <div class="flex justify-center items-center font-semibold border-b-4 border-yellow-300 px-2">Action</div>
+
+            <!-- end table headers -->
+          </section>
+
+          <section v-for="user in tableData" :key="user.id" class="grid grid-cols-5 gap-1 text-white">
+            <!-- table rows content -->
+
+            <p class="flex items-center border-b border-yellow-300 px-2 py-3">{{user.firstName}}</p>
+
+            <p class="flex items-center border-b border-yellow-300 px-2 py-3">{{user.lastName}}</p>
+
+            <p class="flex items-center border-b border-yellow-300 px-2 py-3">{{user.phone}}</p>
+
+            <p class="flex items-center border-b border-yellow-300 px-2 py-3 truncate">{{user.email}}</p>
+
+            <p class="flex items-center justify-center border-b border-yellow-300 px-2 py-3">
+              <button v-on:click="removeUser(user.id)" class="text-red-300 hover:text-red-500">
+                Remove User
+              </button>
+            </p>
+
+            <!-- end table rows content -->
+          </section>
+
+        </div>`,
+      });
+    </script>
+  </head>
+  <body>
+    <main>
+      <test-widget></test-widget>
+    </main>
+  </body>
+</html>
